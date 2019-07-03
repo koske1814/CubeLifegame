@@ -1,0 +1,76 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel Init
+#pragma kernel Update
+#pragma kernel Draw
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+#define ThreadBlockSizeX 8
+#define ThreadBlockSizeY 8
+
+RWStructuredBuffer<int> Result;
+RWStructuredBuffer<int> State;
+int _Width;
+int _Height;
+
+inline int xyToIdx(int2 xy)
+{
+    return xy.y * _Width  + xy.x;
+}
+
+
+inline bool GetAlive(int2 xy)
+{
+    return (any(xy < 0) || (_Width <= xy.x) || (_Height <= xy.y)) ? false : State[xyToIdx(xy)];
+}
+
+
+float rand(float2 seed)
+{
+    return frac(sin(dot(seed.xy, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+
+
+[numthreads(ThreadBlockSizeX,ThreadBlockSizeY,1)]
+void Init (uint3 id : SV_DispatchThreadID)
+{
+    // TODO: insert actual code here!
+  State[xyToIdx(id.xy)] = rand(id.xy) > 0.5 ? 0 : 1;
+
+}
+
+[numthreads(ThreadBlockSizeX,ThreadBlockSizeY,1)]
+void Update(uint3 id : SV_DispatchThreadID){
+    int2 pos = id.xy;
+    if ( (pos.x < _Width) && (pos.y < _Height))
+    {
+        bool alive0  = GetAlive(id.xy + int2(-1,-1));
+        bool alive1  = GetAlive(id.xy + int2( 0,-1));
+        bool alive2  = GetAlive(id.xy + int2( 1,-1));
+        bool alive3  = GetAlive(id.xy + int2(-1, 0));
+        bool center = GetAlive(id.xy + int2( 0, 0));
+        bool alive4  = GetAlive(id.xy + int2( 1, 0));
+        bool alive5  = GetAlive(id.xy + int2(-1, 1));
+        bool alive6  = GetAlive(id.xy + int2( 0, 1));
+        bool alive7  = GetAlive(id.xy + int2( 1, 1));
+
+        int count = alive0
+            + alive1 
+            + alive2 
+            + alive3 
+            + alive4 
+            + alive5 
+            + alive6 
+            + alive7;
+
+        State[xyToIdx(pos)] = (count == 3) || (center && (count == 2));
+     }
+    
+}
+
+[numthreads(ThreadBlockSizeX,ThreadBlockSizeY,1)]
+void Draw(uint3 id : SV_DispatchThreadID){
+    int2 pos = id.xy;
+    Result[xyToIdx(pos)] = State[xyToIdx(pos)];
+}
