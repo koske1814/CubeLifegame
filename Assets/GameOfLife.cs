@@ -11,7 +11,6 @@ public class GameOfLife : MonoBehaviour
     public int width = 100;
     public int height = 100;
     private GameObject[] cubes;
-    private float[] angles;
     private int[] actives;
     private int[] stateActives;
     private int initKernel, updateKernel,drawKernel;
@@ -20,7 +19,6 @@ public class GameOfLife : MonoBehaviour
     {
         cubeNum = width * height;
         cubes = new GameObject[cubeNum];
-        angles = new float[cubeNum];
         actives = new int[cubeNum];
         stateActives = new int[cubeNum];
         for (int i = 0; i < height;i++){
@@ -65,14 +63,12 @@ public class GameOfLife : MonoBehaviour
         computeShader.Dispatch(drawKernel,threadGroupX, threadGroupY, 1);
 
         var data = new int[cubeNum];
-        // 更新結果を取得
         Result.GetData(data);
 
         for (int i = 0; i < cubeNum; i++)
         {
             int result = data[i];
             actives[i] = result;
-            // キューブをぐるぐるさせる
             cubes[i].SetActive(actives[i] != 0);
         }
     }
