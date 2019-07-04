@@ -22,7 +22,7 @@ public class GameOfLife : MonoBehaviour
         actives = new int[cubeNum];
         stateActives = new int[cubeNum];
         for (int i = 0; i < height;i++){
-            for (int j = 0; j < height; j++){
+            for (int j = 0; j < width; j++){
                 var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 cube.transform.localPosition = new Vector3(j,i,1f);
                 cubes[i * width + j] = cube;
